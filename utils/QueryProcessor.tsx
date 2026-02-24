@@ -16,5 +16,13 @@ export default function QueryProcessor(query: string): string {
     return "lleong";
   }
 
+  // Handle addition queries like "What is 59 plus 25?"
+  const additionMatch = query.match(/what is (\d+) plus (\d+)/i);
+  if (additionMatch) {
+    const num1 = parseInt(additionMatch[1]);
+    const num2 = parseInt(additionMatch[2]);
+    return (num1 + num2).toString();
+  }
+
   return "";
 }

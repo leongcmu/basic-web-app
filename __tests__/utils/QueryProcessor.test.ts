@@ -31,4 +31,16 @@ describe("QueryProcessor", () => {
         const response: string = QueryProcessor(query);
         expect(response).toBe("My Andrew ID is: lleong");
     });
+
+    test('should handle addition queries', () => {
+        const query = "What is 59 plus 25?";
+        const response: string = QueryProcessor(query);
+        expect(response).toBe("84");
+    });
+
+    test('should handle different addition queries', () => {
+        expect(QueryProcessor("What is 10 plus 5?")).toBe("15");
+        expect(QueryProcessor("What is 100 plus 200?")).toBe("300");
+        expect(QueryProcessor("What is 7 plus 3?")).toBe("10");
+    });
 });
