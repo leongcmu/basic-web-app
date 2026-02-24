@@ -19,6 +19,70 @@ function isPerfectCube(num: number): boolean {
   return cbrt * cbrt * cbrt === num;
 }
 
+function evaluateMathExpression(expression: string): number {
+  // Convert word operations to symbols
+  let expr = expression
+    .replace(/\s+/g, ' ')
+    .replace(/multiplied by/gi, '*')
+    .replace(/to the power of/gi, '**')
+    .replace(/plus/gi, '+')
+    .replace(/minus/gi, '-')
+    .trim();
+
+  // Tokenize the expression
+  const tokens: (number | string)[] = [];
+  const parts = expr.split(/([+\-*]+)/);
+  
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (trimmed === '') continue;
+    
+    if (/^[+\-*]+$/.test(trimmed)) {
+      tokens.push(trimmed);
+    } else {
+      const num = parseFloat(trimmed);
+      if (!isNaN(num)) {
+        tokens.push(num);
+      }
+    }
+  }
+
+  // Handle power operations first (highest precedence)
+  for (let i = 1; i < tokens.length - 1; i++) {
+    if (tokens[i] === '**') {
+      const left = tokens[i - 1] as number;
+      const right = tokens[i + 1] as number;
+      tokens.splice(i - 1, 3, Math.pow(left, right));
+      i -= 1;
+    }
+  }
+
+  // Handle multiplication (second precedence)
+  for (let i = 1; i < tokens.length - 1; i++) {
+    if (tokens[i] === '*') {
+      const left = tokens[i - 1] as number;
+      const right = tokens[i + 1] as number;
+      tokens.splice(i - 1, 3, left * right);
+      i -= 1;
+    }
+  }
+
+  // Handle addition and subtraction (lowest precedence)
+  let result = tokens[0] as number;
+  for (let i = 1; i < tokens.length; i += 2) {
+    const operator = tokens[i] as string;
+    const operand = tokens[i + 1] as number;
+    
+    if (operator === '+') {
+      result += operand;
+    } else if (operator === '-') {
+      result -= operand;
+    }
+  }
+
+  return result;
+}
+
 export default function QueryProcessor(query: string): string {
   if (query.toLowerCase().includes("shakespeare")) {
     return (
@@ -35,6 +99,17 @@ export default function QueryProcessor(query: string): string {
 
   if (query.toLowerCase().includes("name")) {
     return "lleong";
+  }
+
+  // Handle general mathematical expressions like "What is 15 plus 65 multiplied by 12?"
+  const mathMatch = query.match(/what is ([\d\s]+(?:plus|minus|multiplied by|to the power of)[\d\s]+(?:(?:plus|minus|multiplied by|to the power of)[\d\s]+)*)\??/i);
+  if (mathMatch) {
+    try {
+      const result = evaluateMathExpression(mathMatch[1]);
+      return result.toString();
+    } catch (e) {
+      // Fall through to specific handlers if general evaluation fails
+    }
   }
 
   // Handle addition queries like "What is 59 plus 25?" or "What is 57 plus 99 plus 40?"
