@@ -37,12 +37,12 @@ export default function QueryProcessor(query: string): string {
     return "lleong";
   }
 
-  // Handle addition queries like "What is 59 plus 25?"
-  const additionMatch = query.match(/what is (\d+) plus (\d+)/i);
+  // Handle addition queries like "What is 59 plus 25?" or "What is 57 plus 99 plus 40?"
+  const additionMatch = query.match(/what is ([\d\s]+(?:plus[\d\s]+)+)/i);
   if (additionMatch) {
-    const num1 = parseInt(additionMatch[1]);
-    const num2 = parseInt(additionMatch[2]);
-    return (num1 + num2).toString();
+    const numbers = additionMatch[1].split(/plus/i).map(n => parseInt(n.trim()));
+    const sum = numbers.reduce((acc, num) => acc + num, 0);
+    return sum.toString();
   }
 
   // Handle subtraction queries like "What is 59 minus 25?"
@@ -59,6 +59,14 @@ export default function QueryProcessor(query: string): string {
     const num1 = parseInt(multiplicationMatch[1]);
     const num2 = parseInt(multiplicationMatch[2]);
     return (num1 * num2).toString();
+  }
+
+  // Handle power queries like "What is 81 to the power of 25?"
+  const powerMatch = query.match(/what is (\d+) to the power of (\d+)/i);
+  if (powerMatch) {
+    const base = parseInt(powerMatch[1]);
+    const exponent = parseInt(powerMatch[2]);
+    return Math.pow(base, exponent).toString();
   }
 
   // Handle prime number queries like "Which of the following numbers are primes: 35, 70, 44, 71, 17?"
