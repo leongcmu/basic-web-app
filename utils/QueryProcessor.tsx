@@ -83,6 +83,29 @@ function evaluateMathExpression(expression: string): number {
   return result;
 }
 
+function calculateScrabbleScore(word: string): number {
+  const letterValues: { [key: string]: number } = {
+    'a': 1, 'e': 1, 'i': 1, 'o': 1, 'u': 1, 'l': 1, 'n': 1, 'r': 1, 's': 1, 't': 1,
+    'd': 2, 'g': 2,
+    'b': 3, 'c': 3, 'm': 3, 'p': 3,
+    'f': 4, 'h': 4, 'v': 4, 'w': 4, 'y': 4,
+    'k': 5,
+    'j': 8, 'x': 8,
+    'q': 10, 'z': 10
+  };
+
+  return word
+    .toLowerCase()
+    .split('')
+    .reduce((score, letter) => score + (letterValues[letter] || 0), 0);
+}
+
+function isAnagram(word1: string, word2: string): boolean {
+  const normalize = (word: string) => 
+    word.toLowerCase().replace(/\s/g, '').split('').sort().join('');
+  return normalize(word1) === normalize(word2);
+}
+
 export default function QueryProcessor(query: string): string {
   if (query.toLowerCase().includes("shakespeare")) {
     return (
@@ -166,6 +189,23 @@ export default function QueryProcessor(query: string): string {
     const numbers = largestMatch[1].split(',').map(n => parseInt(n.trim()));
     const largest = Math.max(...numbers);
     return largest.toString();
+  }
+
+  // Handle Scrabble score queries like "What is the scrabble score of buzzword?"
+  const scrabbleMatch = query.match(/what is the scrabble score of (\w+)\??/i);
+  if (scrabbleMatch) {
+    const word = scrabbleMatch[1];
+    const score = calculateScrabbleScore(word);
+    return score.toString();
+  }
+
+  // Handle anagram queries like "Which of the following is an anagram of listen: banana, silent, google, enlists?"
+  const anagramMatch = query.match(/which of the following (?:is an anagram|are anagrams) of (\w+)[:\s]+([a-zA-Z,\s]+)\??/i);
+  if (anagramMatch) {
+    const targetWord = anagramMatch[1];
+    const candidates = anagramMatch[2].split(',').map(w => w.trim());
+    const anagrams = candidates.filter(word => isAnagram(targetWord, word));
+    return anagrams.join(', ');
   }
 
   return "";
